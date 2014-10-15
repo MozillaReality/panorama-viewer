@@ -84,12 +84,19 @@
 				var material = new THREE.MeshBasicMaterial( {
 					map: THREE.ImageUtils.loadTexture( 'images/puydesancy.jpg', new THREE.UVMapping(), function(){
 						
+
+
 							var sound = new THREE.Audio( listener );
 							sound.load( 'audio/235428__allanz10d__calm-ocean-breeze-simulation.ogg' );
 							sound.position.set( 1, 1, 1 );
 							sound.setLoop( true );
 							sound.setRefDistance( 1 );
 							scene.add( sound );
+
+							// announce to JAVRIS host that we are ready to go.
+							setTimeout( function() {
+								VRClient.ended(); 
+							}, 500)
 
 					} )
 				} );
@@ -98,19 +105,6 @@
 				mesh.rotation.set( 0, -1.57, 0 )
 				scene.add( mesh );
 
-
-				// announce to JAVRIS host that we are ready to go.
-
-				VRClient.ready();
-
-
-				// accounce to JAVRIS host when you are done with this scene.  
-				// If this is part of a VRSequence, this will tell JAVRIS to move onto the next scene.
-				
-				// setTimeout( function() {
-				// 	VRClient.ended(); 
-				// }, 5000)
-				
 				window.addEventListener( 'resize', onWindowResize, false );
 				window.addEventListener( 'keypress', onKey, true);
 
