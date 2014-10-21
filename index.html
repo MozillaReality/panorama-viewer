@@ -51,7 +51,7 @@
 				document.body.appendChild( renderer.domElement );
 				scene = new THREE.Scene();
 				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
-				
+
 				// parse url parameter and set appropriate rendering effect.
 
 				if ( parameters.mode === 'cardboard' ) {
@@ -83,7 +83,7 @@
 
 				var material = new THREE.MeshBasicMaterial( {
 					map: THREE.ImageUtils.loadTexture( 'images/puydesancy.jpg', new THREE.UVMapping(), function(){
-						
+
 
 
 							var sound = new THREE.Audio( listener );
@@ -95,7 +95,7 @@
 
 							// announce to JAVRIS host that we are ready to go.
 							setTimeout( function() {
-								VRClient.ended(); 
+								VRClient.ready();
 							}, 500)
 
 					} )
