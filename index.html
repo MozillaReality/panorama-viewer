@@ -216,7 +216,7 @@
 
 				var mesh = new THREE.Mesh(
 					new THREE.PlaneGeometry( 63, 30, 20, 20 ),
-					new THREE.MeshBasicMaterial( { transparent: true, opacity: 1, side: THREE.DoubleSide, map: THREE.ImageUtils.loadTexture( '/images/background-overlay.png' ) } )
+					new THREE.MeshBasicMaterial( { transparent: true, opacity: 1, side: THREE.DoubleSide, map: THREE.ImageUtils.loadTexture( 'images/background-overlay.png' ) } )
 				);
 
 				overlay.add( mesh );
@@ -247,7 +247,7 @@
 			var material = new THREE.MeshBasicMaterial( { 
 				side: THREE.DoubleSide,
 				transparent: true,
-				map: THREE.ImageUtils.loadTexture( '/images/background.jpg', THREE.UVMapping, function(){ 
+				map: THREE.ImageUtils.loadTexture( 'images/background.jpg', THREE.UVMapping, function(){ 
 					VRClient.ready();
 					loadPano();
 				} )
@@ -264,8 +264,8 @@
 
 			function loadPano() {
 				
-				var imgPano = '/images/' + panos[counter].image;
-				var imgOverlay = '/images/' + panos[counter].overlay;
+				var imgPano = 'images/' + panos[counter].image;
+				var imgOverlay = 'images/' + panos[counter].overlay;
 
 				// load pano
 
@@ -374,7 +374,6 @@
 
 
 			init();
-			// loadPano();
 			animate();
 
 
