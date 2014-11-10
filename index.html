@@ -216,7 +216,7 @@
 
 				var mesh = new THREE.Mesh(
 					new THREE.PlaneGeometry( 63, 30, 20, 20 ),
-					new THREE.MeshBasicMaterial( { transparent: true, opacity: 1, side: THREE.DoubleSide, map: THREE.ImageUtils.loadTexture( '/images/louvre-overlay.png' ) } )
+					new THREE.MeshBasicMaterial( { transparent: true, opacity: 1, side: THREE.DoubleSide, map: THREE.ImageUtils.loadTexture( '/images/background-overlay.png' ) } )
 				);
 
 				overlay.add( mesh );
@@ -225,7 +225,6 @@
 				bend(overlay, 100);
 				mesh.renderDepth = 1;
 				scene.add( overlay );
-
 
 			}
 
@@ -249,7 +248,8 @@
 				side: THREE.DoubleSide,
 				transparent: true,
 				map: THREE.ImageUtils.loadTexture( '/images/background.jpg', THREE.UVMapping, function(){ 
-					loadPano(); 
+					VRClient.ready();
+					loadPano();
 				} )
 			} );
 			pano = new THREE.Mesh( geometry, material );
