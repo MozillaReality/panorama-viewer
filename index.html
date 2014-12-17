@@ -130,31 +130,43 @@
 		var	scene = new THREE.Scene();
 
 		var	camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+		// set camera position so that OrbitControls works properly.
+		camera.position.z = 0.0001;
 
 		// Effect and Controls for VR
 		var vrEffect = new THREE.VREffect( renderer );
 		var vrControls = new THREE.VRControls( camera );
+
+		// Effect for cardboard
+		var cbControls = new THREE.DeviceOrientationControls( camera );
+		var cbEffect = new THREE.StereoEffect( renderer );
 
 		// Use OrbitControls for mono mode.
 		var monoControls = new THREE.OrbitControls( camera );
 
 		var controls, effect;
 
-		// assign controls and effects depending on URL parameters.
-		if ( parameters.mode === 'cardboard' ) {
-			controls = new THREE.DeviceOrientationControls( camera );
-			effect = new THREE.StereoEffect( renderer );
-		} else if ( parameters.mode === 'vr' ) {
-			controls = vrControls;
-			effect = vrEffect;
-		} else {
-			// OrbitControls requires a bit of a fulcrum to work.
-			camera.position.z = 0.0001;
-			controls = monoControls;
-			effect = renderer;
+		function changeMode(mode) {
+			console.log('changing mode: ' + mode);
+			switch(mode) {
+				case 'mono':
+					effect = renderer;
+					controls = monoControls;
+					break;
+				case 'vr':
+					controls = vrControls;
+					effect = vrEffect;
+					break;
+				case 'stereo':
+					controls = cbControls;
+					effect = cbEffect;
+					break;
+			}
+			effect.setSize( window.innerWidth, window.innerHeight );
 		}
 
-		effect.setSize( window.innerWidth, window.innerHeight );
+		changeMode('mono');
+
 
 		// add background sound
 		// var listener = new THREE.AudioListener();
@@ -181,7 +193,6 @@
 		mesh.renderDepth = 1;
 
 		scene.add( overlay );
-
 
 		function loadPano() {
 			var imgPano = 'images/' + panos[counter].image;
@@ -313,9 +324,21 @@
 		function animate() {
 			requestAnimationFrame( animate );
 			TWEEN.update();
-			controls.update();
+			if (typeof controls.update == 'function') {
+				controls.update();
+			}
 			effect.render( scene, camera );
 		}
+
+		function handlePostmessage(e) {
+			if (e.data.mode) {
+				changeMode(e.data.mode);
+			} else if (e.data.fullscreen) {
+				enterVr();
+			}
+	  }
+
+  	window.addEventListener('message', handlePostmessage);
 
 		// kick off animation
 		animate();
