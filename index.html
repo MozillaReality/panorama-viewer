@@ -23,6 +23,7 @@
 		<script src="js/DeviceOrientationControls.js"></script>
 		<script src="js/StereoEffect.js"></script>
 		<script src="js/OrbitControls.js"></script>
+		<script src="js/vrclient.js"></script>
 		<script>
 
 		// parse URL parameters
@@ -163,9 +164,14 @@
 					break;
 			}
 			effect.setSize( window.innerWidth, window.innerHeight );
+		};
+
+		if (parameters.mode) {
+			changeMode(parameters.mode);
+		} else {
+			changeMode('mono');
 		}
 
-		changeMode('mono');
 
 
 		// add background sound
@@ -257,7 +263,6 @@
 			// if (!(event.metaKey || event.altKey || event.ctrlKey)) {
 			// 	event.preventDefault();
 			// }
-			console.log(event.keyCode);
 
 			if ( event.keyCode == '90' ) {
 				controls.zeroSensor();
@@ -333,6 +338,8 @@
 
 		// kick off animation
 		animate();
+
+		VRClient.ready();
 
 
 		</script>
