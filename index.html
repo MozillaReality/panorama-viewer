@@ -254,34 +254,25 @@
 
 
 		function onkey( event ) {
-			if (!(event.metaKey || event.altKey || event.ctrlKey)) {
-				event.preventDefault();
-			}
+			// if (!(event.metaKey || event.altKey || event.ctrlKey)) {
+			// 	event.preventDefault();
+			// }
+			console.log(event.keyCode);
 
-			if ( event.charCode == 'z'.charCodeAt(0) ) {
-
+			if ( event.keyCode == '90' ) {
 				controls.zeroSensor();
-
 			} else if ( event.keyCode == '37' ) {
-
 				counter --;
-
 				if( counter < 0 ) {
 					counter = panos.length - 1;
 				}
-
 				loadPano();
-
 			} else if ( event.keyCode == '39' ) {
-
 				counter ++;
-
 				if( counter == panos.length ) {
 					counter = 0;
 				}
-
 				loadPano();
-
 			}
 
 			event.stopPropagation();
@@ -318,7 +309,7 @@
 		document.addEventListener('mozfullscreenchange', handleFsChange);
     document.addEventListener('webkitfullscreenchange', handleFsChange)
 		window.addEventListener('resize', onWindowResize, false );
-		window.addEventListener('keypress', onkey, true);
+		window.addEventListener("keydown", onkey, true);
 
 
 		function animate() {
