@@ -303,10 +303,12 @@
 		}
 
 		function enterVr() {
-			controls = vrControls;
-			effect = vrEffect;
-
-			effect.setFullScreen( true );
+			// check to see if we are in iframe before setting fullscreen.
+			if(!window.frameElement) {
+				controls = vrControls;
+				effect = vrEffect;
+				effect.setFullScreen( true );
+			}
 		}
 
 		// bind events.
