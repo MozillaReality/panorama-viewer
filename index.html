@@ -23,7 +23,6 @@
 		<script src="js/DeviceOrientationControls.js"></script>
 		<script src="js/StereoEffect.js"></script>
 		<script src="js/OrbitControls.js"></script>
-		<script src="js/vrclient.js"></script>
 		<script>
 
 		// parse URL parameters
@@ -331,8 +330,6 @@
 		function handlePostmessage(e) {
 			if (e.data.mode) {
 				changeMode(e.data.mode);
-			} else if (e.data.fullscreen) {
-				enterVr();
 			}
 	  }
 
@@ -340,9 +337,6 @@
 
 		// kick off animation
 		animate();
-
-		VRClient.ready();
-
 
 		</script>
 
