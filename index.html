@@ -20,23 +20,10 @@
 		<script src="js/tween.min.js"></script>
 		<script src="js/VRControls.js"></script>
 		<script src="js/VREffect.js"></script>
-		<script src="js/DeviceOrientationControls.js"></script>
-		<script src="js/StereoEffect.js"></script>
 		<script src="js/OrbitControls.js"></script>
+		<script src="js/webvr-polyfill.js"></script>
+		<script src="js/webvr-manager.js"></script>
 		<script>
-
-		// parse URL parameters
-		var parseURLSearch = function () {
-			var parameters = {};
-			var parts = window.location.search.substr( 1 ).split( '&' );
-			for ( var i = 0; i < parts.length; i ++ ) {
-				var parameter = parts[ i ].split( '=' );
-				parameters[ parameter[ 0 ] ] = parameter[ 1 ];
-			}
-			return parameters;
-		}
-
-		var parameters = parseURLSearch();
 
 		// define all the different panoramas we will use.
 		var panos = [
@@ -134,44 +121,18 @@
 		camera.position.z = 0.0001;
 
 		// Effect and Controls for VR
-		var vrEffect = new THREE.VREffect( renderer );
-		var vrControls = new THREE.VRControls( camera );
+		var effect = new THREE.VREffect(renderer);
+		var controls = new THREE.VRControls(camera);
 
-		// Effect for cardboard
-		var cbControls = new THREE.DeviceOrientationControls( camera );
-		var cbEffect = new THREE.StereoEffect( renderer );
-
-		// Use OrbitControls for mono mode.
-		var monoControls = new THREE.OrbitControls( camera );
-
-		var controls, effect;
-
-		function changeMode(mode) {
-			console.log('changing mode: ' + mode);
-			switch(mode) {
-				case 'mono':
-					effect = renderer;
-					controls = monoControls;
-					break;
-				case 'vr':
-					controls = vrControls;
-					effect = vrEffect;
-					break;
-				case 'stereo':
-					controls = cbControls;
-					effect = cbEffect;
-					break;
-			}
-			effect.setSize( window.innerWidth, window.innerHeight );
-		};
-
-		if (parameters.mode) {
-			changeMode(parameters.mode);
-		} else {
-			changeMode('mono');
-		}
+		var orbitControls = new THREE.OrbitControls(camera);
 
 
+		// Initialize the WebVR manager.
+		manager = new WebVRManager(effect, {
+			hideButton: true
+		});
+
+		onWindowResize();
 
 		// add background sound
 		// var listener = new THREE.AudioListener();
@@ -184,8 +145,8 @@
 			new THREE.PlaneGeometry( 63, 30, 20, 20 ),
 			new THREE.MeshBasicMaterial({
 				transparent: true,
-				opacity: 1,
-				side: THREE.DoubleSide,
+				alphaTest: 0.5,
+				side: THREE.FrontSide,
 				map: THREE.ImageUtils.loadTexture('images/background-overlay.png')
 		}));
 
@@ -258,11 +219,37 @@
 		scene.add(pano);
 
 
-		function onkey( event ) {
-			// if (!(event.metaKey || event.altKey || event.ctrlKey)) {
-			// 	event.preventDefault();
-			// }
+		// main animation loop
+		function animate() {
+			requestAnimationFrame( animate );
+			TWEEN.update();
+			
+			if (manager.isVRMode()) {
+				effect.render(scene, camera);
+				controls.update();
+			} else {
+				renderer.render(scene, camera);
+				orbitControls.update();
+			}
 
+			onWindowResize();			
+		}
+
+		animate();
+
+
+
+		// window events
+    function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			effect.setSize( window.innerWidth, window.innerHeight );
+		}
+
+		window.addEventListener('resize', onWindowResize, false );
+
+
+		function onkey( event ) {
 			if ( event.keyCode == '90' ) {
 				controls.zeroSensor();
 			} else if ( event.keyCode == '37' ) {
@@ -280,63 +267,22 @@
 			}
 
 			event.stopPropagation();
-
 		};
 
-
-    function handleFsChange(e) {
-      var fullscreenElement = document.fullscreenElement ||
-        document.mozFullScreenElement ||
-        document.webkitFullscreenElement;
-
-      if (fullscreenElement == null) {
-      	effect = renderer;
-        controls = monoControls;
-      }
-    };
-
-    function onWindowResize() {
-			camera.aspect = window.innerWidth / window.innerHeight;
-			camera.updateProjectionMatrix();
-			effect.setSize( window.innerWidth, window.innerHeight );
-		}
-
-		function enterVr() {
-			// check to see if we are in iframe before setting fullscreen.
-			if(!window.frameElement) {
-				controls = vrControls;
-				effect = vrEffect;
-				effect.setFullScreen( true );
-			}
-		}
-
-		// bind events.
-		document.body.addEventListener( 'dblclick', enterVr);
-		document.addEventListener('mozfullscreenchange', handleFsChange);
-    document.addEventListener('webkitfullscreenchange', handleFsChange)
-		window.addEventListener('resize', onWindowResize, false );
 		window.addEventListener("keydown", onkey, true);
 
 
-		function animate() {
-			requestAnimationFrame( animate );
-			TWEEN.update();
-			if (typeof controls.update == 'function') {
-				controls.update();
-			}
-			effect.render( scene, camera );
-		}
-
 		function handlePostmessage(e) {
-			if (e.data.mode) {
-				changeMode(e.data.mode);
-			}
+	    if (e.data.mode == 'vr') {
+	      manager.enterVR();
+	    }
+
+	    if (e.data.mode == 'mono') {
+	    	manager.exitVR();
+	    }
 	  }
 
-  	window.addEventListener('message', handlePostmessage);
-
-		// kick off animation
-		animate();
+		window.addEventListener('message', handlePostmessage);
 
 		</script>
 
