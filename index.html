@@ -129,9 +129,7 @@
 
 
 		// Initialize the WebVR manager.
-		manager = new WebVRManager(effect, {
-			hideButton: true
-		});
+		manager = new WebVRManager(renderer, effect);
 
 		onWindowResize();
 
