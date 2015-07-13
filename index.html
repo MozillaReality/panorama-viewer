@@ -26,6 +26,17 @@
 		<script src="js/webvr-manager.js"></script>
 		<script>
 
+		// url parameters.
+		var parameters = (function() {
+			var parameters = {};
+			var parts = window.location.search.substr(1).split('&');
+			for (var i = 0; i < parts.length; i++) {
+				var parameter = parts[i].split('=');
+				parameters[parameter[0]] = parameter[1];
+			}
+			return parameters;
+		})();
+
 		// define all the different panoramas we will use.
 		var panos = [
 			{
@@ -218,26 +229,31 @@
 
 		scene.add(pano);
 
-
 		// main animation loop
 		function animate() {
 			requestAnimationFrame( animate );
 			TWEEN.update();
-			
+
+			if (controls) {
+				controls.update();
+			}
+
 			if (manager.isVRMode()) {
 				effect.render(scene, camera);
-				controls.update();
 			} else {
 				renderer.render(scene, camera);
 				orbitControls.update();
 			}
-
-			onWindowResize();			
 		}
 
-		animate();
+		// Hack to wait for next tick so `VREffect#render` will have everything it needs to set things up.
+		requestAnimationFrame(function () {
+			if (parameters.mode === 'vr') {
+				manager.enterVR();
+			}
 
-
+			animate();
+		});
 
 		// window events
     function onWindowResize() {
