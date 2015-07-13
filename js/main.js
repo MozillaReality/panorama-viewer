@@ -9,8 +9,17 @@ var parameters = (function() {
   return parameters;
 })();
 
+var camera, scene, renderer;
+var controls, effect;
+var orbitControls;
+var controls2, clock = new THREE.Clock();
+var counter = 0;
+var pano, overlay;
+var manager;
+
 
 // define all the different panoramas we will use.
+
 var panos = [
 	{
 		"title": "En route pour le Puy de Sancy",
@@ -44,7 +53,9 @@ var panos = [
 	}
 ];
 
+
 // bend function
+
 function bend( group, amount, multiMaterialObject ) {
 	function bendVertices( mesh, amount, parent ) {
 		var vertices = mesh.geometry.vertices;
@@ -90,61 +101,7 @@ function bend( group, amount, multiMaterialObject ) {
 };
 
 
-var counter = 0;
-var pano, overlay;
-
-var renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.autoClear = false;
-renderer.setClearColor( 0x000000 );
-
-document.body.appendChild( renderer.domElement );
-
-var	scene = new THREE.Scene();
-
-var	camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
-// set camera position so that OrbitControls works properly.
-camera.position.z = 0.0001;
-
-// Effect and Controls for VR
-var effect = new THREE.VREffect(renderer);
-var controls = new THREE.VRControls(camera);
-
-var orbitControls = new THREE.OrbitControls(camera);
-orbitControls.noZoom = true;
-
-
-// Initialize the WebVR manager.
-manager = new WebVRManager(renderer, effect, {
-  hideButton: true
-});
-
-onWindowResize();
-
-// add background sound
-// var listener = new THREE.AudioListener();
-// camera.add( listener );
-
-// title text
-overlay = new THREE.Object3D();
-
-var mesh = new THREE.Mesh(
-	new THREE.PlaneGeometry( 63, 30, 20, 20 ),
-	new THREE.MeshBasicMaterial({
-		transparent: true,
-		alphaTest: 0.5,
-		side: THREE.FrontSide,
-		map: THREE.ImageUtils.loadTexture('images/background-overlay.png')
-}));
-
-overlay.add( mesh );
-overlay.position.set( 0, -3, -5 );
-overlay.scale.set( 0.1, 0.1, 0.1 );
-
-bend(overlay, 100);
-
-mesh.renderDepth = 1;
-
-scene.add( overlay );
+//load pano
 
 function loadPano() {
 	var imgPano = 'images/' + panos[counter].image;
@@ -184,55 +141,116 @@ function loadPano() {
 	}
 };
 
-// panorma mesh
-var geometry = new THREE.SphereGeometry( 1000, 60, 60 );
-geometry.applyMatrix( new THREE.Matrix4().makeScale( -1, 1, 1 ) );
 
-var material = new THREE.MeshBasicMaterial({
-	side: THREE.DoubleSide,
-	transparent: true,
-	map: THREE.ImageUtils.loadTexture( // placeholder rexture
-		'images/background.jpg',
-		THREE.UVMapping,
-		loadPano
-	)
-});
+// initialize scene
 
-var pano = new THREE.Mesh( geometry, material );
-pano.renderDepth = 2;
-pano.rotation.set( 0, -90 * Math.PI / 180, 0 );
+function init() {
 
-scene.add(pano);
+	renderer = new THREE.WebGLRenderer({ antialias: true });
+	renderer.autoClear = false;
+	renderer.setClearColor( 0x000000 );
+	document.body.appendChild( renderer.domElement );
 
+	scene = new THREE.Scene();
 
-// main animation loop
-function animate() {
-	requestAnimationFrame( animate );
-	TWEEN.update();
-	
-	if (manager.isVRMode()) {
-		effect.render(scene, camera);
-		controls.update();
-	} else {
-		renderer.render(scene, camera);
-		orbitControls.update();
+	camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+	camera.position.z = 0.0001; // set camera position so that OrbitControls works properly
+	scene.add(camera);
+
+	// effect and controls for VR
+	effect = new THREE.VREffect(renderer);
+	controls = new THREE.VRControls(camera);
+
+  // effect and controls for VR
+  effect = new THREE.VREffect(renderer);
+  controls = new THREE.VRControls(camera);
+  orbitControls = new THREE.OrbitControls(camera);
+  orbitControls.noZoom = true;
+
+  // initialize the WebVR manager.
+  manager = new WebVRManager(renderer, effect, {
+    hideButton: true
+  });
+
+	// add background sound
+	// var listener = new THREE.AudioListener();
+	// camera.add( listener );
+
+	// panorma mesh
+	var geometry = new THREE.SphereGeometry( 1000, 60, 60 );
+	geometry.applyMatrix( new THREE.Matrix4().makeScale( -1, 1, 1 ) );
+
+	var material = new THREE.MeshBasicMaterial({
+		side: THREE.DoubleSide,
+		transparent: true,
+		map: THREE.ImageUtils.loadTexture( 
+			'images/background.jpg', // load placeholder rexture
+			THREE.UVMapping,
+			loadPano
+		)
+	});
+
+	pano = new THREE.Mesh( geometry, material );
+	pano.renderDepth = 2;
+	pano.rotation.set( 0, -90 * Math.PI / 180, 0 );
+	scene.add(pano);
+
+	// title text
+	overlay = new THREE.Object3D();
+	var mesh = new THREE.Mesh(
+		new THREE.PlaneGeometry( 63, 30, 20, 20 ),
+		new THREE.MeshBasicMaterial({
+			transparent: true,
+			alphaTest: 0.5,
+			side: THREE.FrontSide,
+			map: THREE.ImageUtils.loadTexture('images/background-overlay.png')
+	}));
+	overlay.add( mesh );
+	overlay.position.set( 0, -3, -5 );
+	overlay.scale.set( 0.1, 0.1, 0.1 );
+	bend(overlay, 100);
+	mesh.renderDepth = 1;
+	scene.add( overlay );
+
+	window.addEventListener('resize', onWindowResize, false );
+
+	function handlePostmessage(e) {
+	  if (e.data.mode == 'vr') {
+	    manager.enterVR();
+	  }
+
+	  if (e.data.mode == 'mono') {
+	  	manager.exitVR();
+	  }
 	}
 
-	onWindowResize();			
+	if (parameters.mode == 'vr') {
+	  manager.enterVR();
+	} 
+
+	window.addEventListener('message', handlePostmessage);
+
+  // trigger function that begins to animate the scene
+  new TWEEN.Tween()
+    .delay(400)
+    .onComplete( function(){
+       setupScene();
+    })
+    .start();
+
+	requestAnimationFrame(animate);
+  onWindowResize();
+
 }
 
-animate();
 
+function setupScene() {
+  
+  if (parameters.mode == 'vr') {
+    manager.enterVR();
+  }
 
-
-// window events
-function onWindowResize() {
-	camera.aspect = window.innerWidth / window.innerHeight;
-	camera.updateProjectionMatrix();
-	effect.setSize( window.innerWidth, window.innerHeight );
 }
-
-window.addEventListener('resize', onWindowResize, false );
 
 
 function onkey( event ) {
@@ -258,18 +276,26 @@ function onkey( event ) {
 window.addEventListener("keydown", onkey, true);
 
 
-function handlePostmessage(e) {
-  if (e.data.mode == 'vr') {
-    manager.enterVR();
-  }
-
-  if (e.data.mode == 'mono') {
-  	manager.exitVR();
-  }
+function onWindowResize() {
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	effect.setSize(window.innerWidth, window.innerHeight);
 }
 
-if (parameters.mode == 'vr') {
-  manager.enterVR();
-} 
 
-window.addEventListener('message', handlePostmessage);
+function animate() {
+
+	requestAnimationFrame(animate);
+	TWEEN.update();
+	
+	if (manager.isVRMode()) {
+		effect.render(scene, camera);
+		controls.update();
+	} else {
+		renderer.render(scene, camera);
+		orbitControls.update();
+	}	
+}
+
+
+init();
