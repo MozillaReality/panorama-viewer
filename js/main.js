@@ -1,3 +1,14 @@
+// url parameters
+var parameters = (function() {
+  var parameters = {};
+  var parts = window.location.search.substr(1).split('&');
+  for (var i = 0; i < parts.length; i++) {
+    var parameter = parts[i].split('=');
+    parameters[parameter[0]] = parameter[1];
+  }
+  return parameters;
+})();
+
 
 // define all the different panoramas we will use.
 var panos = [
