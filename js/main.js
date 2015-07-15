@@ -1,60 +1,27 @@
 // url parameters
 var parameters = (function() {
-  var parameters = {};
-  var parts = window.location.search.substr(1).split('&');
-  for (var i = 0; i < parts.length; i++) {
-    var parameter = parts[i].split('=');
-    parameters[parameter[0]] = parameter[1];
-  }
-  return parameters;
+	var parameters = {};
+	var parts = window.location.search.substr(1).split('&');
+	for (var i = 0; i < parts.length; i++) {
+		var parameter = parts[i].split('=');
+		parameters[parameter[0]] = parameter[1];
+	}
+	return parameters;
 })();
 
-var camera, scene, renderer;
-var controls, effect;
-var orbitControls;
-var controls2, clock = new THREE.Clock();
+var camera;
+var clock = new THREE.Clock();
+var controls;
 var counter = 0;
-var pano, overlay;
+var effect;
 var manager;
+var orbitControls;
+var overlay;
+var pano;
+var panoCurrent;
+var renderer;
+var scene;
 
-
-// define all the different panoramas we will use.
-
-var panos = [
-	{
-		"title": "En route pour le Puy de Sancy",
-		"details": "Equirectangular panorama built from 10 pictures, shot handheld.",
-		"owner": " Alexandre Duret-Lutz",
-		"overlay": "puydesancy-overlay.png",
-		"image": "puydesancy.jpg",
-		"audio": "235428__allanz10d__calm-ocean-breeze-simulation.ogg",
-		"source": "http://bit.ly/1xk9Vk1",
-		"license": "Creative Commons"
-	},
-	{
-		"title": "Musée du Louvre",
-		"details": "Equirectangular panorama built from 8 pictures.",
-		"owner": " Alexandre Duret-Lutz",
-		"overlay": "louvre-overlay.png",
-		"image": "louvre.jpg",
-		"audio": "235428__allanz10d__calm-ocean-breeze-simulation.ogg",
-		"source": "https://www.flickr.com/photos/gadl/406108908",
-		"license": "Creative Commons"
-	},
-	{
-		"title": "Sunrise on Tintamarre",
-		"details": "Equirectangular panorama built from 8 pictures.",
-		"owner": " Alexandre Duret-Lutz",
-		"overlay": "tintamarre-overlay.png",
-		"image": "tintamarre.jpg",
-		"audio": "235428__allanz10d__calm-ocean-breeze-simulation.ogg",
-		"source": "g",
-		"license": "Creative Commons"
-	}
-];
-
-
-// bend function
 
 function bend( group, amount, multiMaterialObject ) {
 	function bendVertices( mesh, amount, parent ) {
@@ -81,7 +48,7 @@ function bend( group, amount, multiMaterialObject ) {
 			vertex.x = localVertex.x;
 			vertex.z = localVertex.z+amount;
 			vertex.y = localVertex.y;
-		};
+		}
 
 		mesh.geometry.computeBoundingSphere();
 		mesh.geometry.verticesNeedUpdate = true;
@@ -98,48 +65,51 @@ function bend( group, amount, multiMaterialObject ) {
 			}
 		}
 	}
-};
+}
 
-
-//load pano
 
 function loadPano() {
-	var imgPano = 'images/' + panos[counter].image;
-	var imgOverlay = 'images/' + panos[counter].overlay;
+	panosList.then(function (panos) {
 
-	// fade out current panorama.
-	new TWEEN.Tween( pano.material )
-		.to({ opacity: 0}, 300 )
-		.onComplete(function() {
-			// load in new panorama texture.
-			pano.material.map = THREE.ImageUtils.loadTexture(imgPano, THREE.UVMapping, fadeIn)
-		})
-		.start();
+		panoCurrent = panos[counter];
+		var imgPano = panoCurrent.image;
+		var imgOverlay = panoCurrent.overlay;
 
-	// fade out current title
-	new TWEEN.Tween( overlay.children[0].material )
-		.to({ opacity: 0}, 300 )
-		.onComplete( function(){
-			// load in new title
-			overlay.children[0].material.map = THREE.ImageUtils.loadTexture( imgOverlay, THREE.UVMapping );
-		})
-		.start();
-
-	// fade in newly loaded panorama
-	function fadeIn() {
-		new TWEEN.Tween( pano.material )
-			.to({ opacity: 1}, 1000)
-			.onComplete( fadeInOverlay )
+		// fade out current panorama.
+		new TWEEN.Tween(pano.material)
+			.to({opacity: 0}, 300)
+			.onComplete(function () {
+				// load in new panorama texture.
+				pano.material.map = THREE.ImageUtils.loadTexture(imgPano, THREE.UVMapping, fadeIn);
+			})
 			.start();
-	}
 
-	// fade in newly loaded title
-	function fadeInOverlay() {
-		new TWEEN.Tween( overlay.children[0].material )
-			.to({ opacity: 1}, 300 )
+		// fade out current title.
+		new TWEEN.Tween(overlay.children[0].material)
+			.to({opacity: 0}, 300)
+			.onComplete(function () {
+				// load in new title.
+				overlay.children[0].material.map = THREE.ImageUtils.loadTexture(imgOverlay, THREE.UVMapping);
+			})
 			.start();
-	}
-};
+
+		// fade in newly loaded panorama.
+		function fadeIn() {
+			new TWEEN.Tween(pano.material)
+				.to({opacity: 1}, 1000)
+				.onComplete(fadeInOverlay)
+				.start();
+		}
+
+		// fade in newly loaded title.
+		function fadeInOverlay() {
+			new TWEEN.Tween(overlay.children[0].material)
+				.to({opacity: 1}, 300)
+				.start();
+		}
+
+	});
+}
 
 
 // initialize scene
@@ -161,39 +131,46 @@ function init() {
 	effect = new THREE.VREffect(renderer);
 	controls = new THREE.VRControls(camera);
 
-  // effect and controls for VR
-  effect = new THREE.VREffect(renderer);
-  controls = new THREE.VRControls(camera);
-  orbitControls = new THREE.OrbitControls(camera);
-  orbitControls.noZoom = true;
+	// effect and controls for VR
+	effect = new THREE.VREffect(renderer);
+	controls = new THREE.VRControls(camera);
+	orbitControls = new THREE.OrbitControls(camera);
+	orbitControls.noZoom = true;
 
-  // initialize the WebVR manager.
-  manager = new WebVRManager(renderer, effect, {
-    hideButton: true
-  });
+	// initialize the WebVR manager.
+	manager = new WebVRManager(renderer, effect, {
+		hideButton: true
+	});
 
 	// add background sound
 	// var listener = new THREE.AudioListener();
 	// camera.add( listener );
 
+	// Fetch the JSON list of panos.
+	panosList.then(loadMaterial).then(loadPano);
+
 	// panorma mesh
 	var geometry = new THREE.SphereGeometry( 1000, 60, 60 );
 	geometry.applyMatrix( new THREE.Matrix4().makeScale( -1, 1, 1 ) );
 
-	var material = new THREE.MeshBasicMaterial({
-		side: THREE.DoubleSide,
-		transparent: true,
-		map: THREE.ImageUtils.loadTexture( 
-			'images/background.jpg', // load placeholder rexture
-			THREE.UVMapping,
-			loadPano
-		)
-	});
+	function loadMaterial() {
+		return new Promise(function (resolve) {
+			var material = new THREE.MeshBasicMaterial({
+				side: THREE.DoubleSide,
+				transparent: true,
+				map: THREE.ImageUtils.loadTexture(
+					'images/background.jpg', // load placeholder rexture
+					THREE.UVMapping,
+					resolve
+				)
+			});
 
-	pano = new THREE.Mesh( geometry, material );
-	pano.renderDepth = 2;
-	pano.rotation.set( 0, -90 * Math.PI / 180, 0 );
-	scene.add(pano);
+			pano = new THREE.Mesh( geometry, material );
+			pano.renderDepth = 2;
+			pano.rotation.set( 0, -90 * Math.PI / 180, 0 );
+			scene.add(pano);
+		});
+	}
 
 	// title text
 	overlay = new THREE.Object3D();
@@ -215,63 +192,65 @@ function init() {
 	window.addEventListener('resize', onWindowResize, false );
 
 	function handlePostmessage(e) {
-	  if (e.data.mode == 'vr') {
-	    manager.enterVR();
-	  }
+		if (e.data.mode == 'vr') {
+			manager.enterVR();
+		}
 
-	  if (e.data.mode == 'mono') {
-	  	manager.exitVR();
-	  }
+		if (e.data.mode == 'mono') {
+			manager.exitVR();
+		}
 	}
 
 	if (parameters.mode == 'vr') {
-	  manager.enterVR();
-	} 
+		manager.enterVR();
+	}
 
 	window.addEventListener('message', handlePostmessage);
 
-  // trigger function that begins to animate the scene
-  new TWEEN.Tween()
-    .delay(400)
-    .onComplete( function(){
-       setupScene();
-    })
-    .start();
+	// trigger function that begins to animate the scene.
+	new TWEEN.Tween()
+		.delay(400)
+		.onComplete(setupScene)
+		.start();
 
 	requestAnimationFrame(animate);
-  onWindowResize();
+	onWindowResize();
 
 }
 
 
 function setupScene() {
-  
-  if (parameters.mode == 'vr') {
-    manager.enterVR();
-  }
+
+	if (parameters.mode == 'vr') {
+		manager.enterVR();
+	}
 
 }
 
 
-function onkey( event ) {
-	if ( event.keyCode == '90' ) {
-		controls.zeroSensor();
-	} else if ( event.keyCode == '37' ) {
-		counter --;
-		if( counter < 0 ) {
-			counter = panos.length - 1;
-		}
-		loadPano();
-	} else if ( event.keyCode == '39' ) {
-		counter ++;
-		if( counter == panos.length ) {
-			counter = 0;
-		}
-		loadPano();
-	}
+function onkey(e) {
+	panosList.then(function (panos) {
 
-	event.stopPropagation();
-};
+		if (e.keyCode == '90') {
+			controls.zeroSensor();
+		} else if (e.keyCode == '37') {
+			counter --;
+			if (counter < 0) {
+				counter = panos.length - 1;
+			}
+			loadPano();
+		} else if (e.keyCode == '39') {
+			counter ++;
+			if (counter == panos.length) {
+				counter = 0;
+			}
+			loadPano();
+		}
+
+	});
+
+	e.stopPropagation();
+}
 
 window.addEventListener("keydown", onkey, true);
 
@@ -287,14 +266,14 @@ function animate() {
 
 	requestAnimationFrame(animate);
 	TWEEN.update();
-	
+
 	if (manager.isVRMode()) {
 		effect.render(scene, camera);
 		controls.update();
 	} else {
 		renderer.render(scene, camera);
 		orbitControls.update();
-	}	
+	}
 }
 
 
