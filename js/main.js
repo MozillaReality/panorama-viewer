@@ -130,10 +130,6 @@ function init() {
 	// effect and controls for VR
 	effect = new THREE.VREffect(renderer);
 	controls = new THREE.VRControls(camera);
-
-	// effect and controls for VR
-	effect = new THREE.VREffect(renderer);
-	controls = new THREE.VRControls(camera);
 	orbitControls = new THREE.OrbitControls(camera);
 	orbitControls.noZoom = true;
 
