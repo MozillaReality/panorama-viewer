@@ -14,18 +14,28 @@
 				overflow: hidden;
 			}
 
+			#enterVr {
+				position: absolute;
+				top: 0;
+				left: 0;
+				margin: 10px;
+				background: black;
+				border: 0;
+				color: #fff;
+				padding: 10px;
+				font-size: 1rem;
+			}
+
 		</style>
 	</head>
 	<body>
-		<script src="js/lib/fetch.js"></script>
+		<button id="enterVr">ENTER VR</button>
 		<script src="js/three.min.js"></script>
+		<script src="js/webvr-polyfill.js"></script>
 		<script src="js/tween.min.js"></script>
 		<script src="js/VRControls.js"></script>
 		<script src="js/VREffect.js"></script>
 		<script src="js/OrbitControls.js"></script>
-		<script src="js/webvr-polyfill.js"></script>
-		<script src="js/webvr-manager.js"></script>
-		<script src="js/fetchPanos.js"></script>
 		<script src="js/main.js"></script>
 	</body>
 </html>
