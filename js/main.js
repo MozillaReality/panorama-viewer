@@ -34,7 +34,6 @@ var isMobile = function () {
 var camera;
 var clock = new THREE.Clock();
 var vrControls;
-var orbitControls;
 var counter = 0;
 var effect;
 var manager;
@@ -149,7 +148,6 @@ function init() {
 	// effect and controls for VR
 	effect = new THREE.VREffect(renderer);
 	vrControls = new THREE.VRControls(camera);
-	orbitControls = new THREE.OrbitControls(camera);
 
 	// Fetch the JSON list of panos
 	function loadMaterial() {
@@ -269,11 +267,11 @@ function animate() {
 
 	if (vrMode) {
 		effect.render(scene, camera);
-		vrControls.update();
 	}  else {
 		renderer.render(scene, camera);
-		orbitControls.update();
 	}
+
+	vrControls.update();
 
 	requestAnimationFrame(animate);
 }
